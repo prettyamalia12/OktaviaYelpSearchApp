@@ -2,15 +2,6 @@ package com.example.oktaviayelpsearchapp.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class BusinessResponse(
-    @SerializedName("total")
-    val total: Int,
-    @SerializedName("businesses")
-    val businesses: List<Businesses>,
-    @SerializedName("region")
-    val region: Region,
-)
-
 data class Businesses(
     @SerializedName("rating")
     val rating: Int,
@@ -67,16 +58,4 @@ data class Location(
     val alias: String,
     @SerializedName("title")
     val title: String
-)
-
-data class Region(
-    @SerializedName("center")
-    val center: Center,
-)
-
-data class Center(
-    @SerializedName("latitude")
-    val latitude: Double,
-    @SerializedName("longitude")
-    val longitude: Double,
 )
