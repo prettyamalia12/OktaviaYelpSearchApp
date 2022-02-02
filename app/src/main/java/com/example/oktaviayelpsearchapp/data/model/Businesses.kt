@@ -2,7 +2,7 @@ package com.example.oktaviayelpsearchapp.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class response(
+data class BusinessResponse(
     @SerializedName("total")
     val total: Int,
     @SerializedName("businesses")
