@@ -1,10 +1,14 @@
 package com.example.oktaviayelpsearchapp
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import android.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -14,7 +18,6 @@ import com.example.oktaviayelpsearchapp.ui.main.viewmodel.BusinessViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.android.synthetic.main.activity_business.*
-
 
 class BusinessActivity : AppCompatActivity() {
 
@@ -78,6 +81,7 @@ class BusinessActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun getBusinessList(){
         if (longitude == 0.0 || latitude == 0.0) return
 
@@ -99,5 +103,25 @@ class BusinessActivity : AppCompatActivity() {
 
     private fun setUpViewModel(){
         businessViewModel = ViewModelProvider(this).get(BusinessViewModel::class.java)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.toolbar, menu)
+        val searchViewItem: MenuItem = menu.findItem(R.id.app_bar_search)
+        val searchView: SearchView = searchViewItem.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                searchView.clearFocus()
+
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+
+                return false
+            }
+        })
+        return super.onCreateOptionsMenu(menu)
     }
 }
