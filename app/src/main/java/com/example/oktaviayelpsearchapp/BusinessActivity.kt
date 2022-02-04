@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -33,6 +34,7 @@ class BusinessActivity : AppCompatActivity() {
     private var longitude = 0.0
     private var latitude = 0.0
     private val LOCATION_PERMISSION_REQ_CODE = 100
+    private var suggestionsInProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,32 +122,38 @@ class BusinessActivity : AppCompatActivity() {
         val from = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
         val to = intArrayOf(R.id.item_label)
         val cursorAdapter = SimpleCursorAdapter(this, R.layout.layout_search, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER)
-        val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
+        val searchSrcTextView = searchView.findViewById<AutoCompleteTextView>(R.id.search_src_text)
 
         searchView.suggestionsAdapter = cursorAdapter
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 searchView.clearFocus()
-                return true
+                return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                 cursor.let {
-                     if (newText == null) return false
-                        val suggested = searchBusiness(newText)
-                        suggested.forEachIndexed { index, suggestion ->
-                            if (suggestion.contains(newText, true))
-                            cursor.addRow(arrayOf(index, suggestion))
-                    }
 
-                     cursorAdapter.changeCursor(cursor)
+                if (newText?.isEmpty() == true) {
+                    searchSrcTextView.threshold = 1
                 }
+
+                val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
+                // get suggestions
+                newText.let {
+                    newText?.let { searchBusiness(it) }?.forEachIndexed { index, suggestion ->
+                        if (suggestion.contains(newText, true)) {
+                            cursor.addRow(arrayOf(index, suggestion))
+                        }
+                    }
+                }
+                cursorAdapter.changeCursor(cursor)
 
                 return true
             }
         })
 
         searchView.setOnSuggestionListener(object : SearchView.OnSuggestionListener{
+            val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
             override fun onSuggestionSelect(p0: Int): Boolean {
                 return false
             }
