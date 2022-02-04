@@ -2,14 +2,20 @@ package com.example.oktaviayelpsearchapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.SearchManager
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.database.MatrixCursor
 import android.os.Bundle
+import android.provider.BaseColumns
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.SearchView
+import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
+import androidx.cursoradapter.widget.CursorAdapter
+import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -105,23 +111,75 @@ class BusinessActivity : AppCompatActivity() {
         businessViewModel = ViewModelProvider(this).get(BusinessViewModel::class.java)
     }
 
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.toolbar, menu)
+        menuInflater.inflate(R.menu.toolbar, menu)
         val searchViewItem: MenuItem = menu.findItem(R.id.app_bar_search)
         val searchView: SearchView = searchViewItem.actionView as SearchView
+
+        val from = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
+        val to = intArrayOf(R.id.item_label)
+        val cursorAdapter = SimpleCursorAdapter(this, R.layout.layout_search, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER)
+        val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
+
+        searchView.suggestionsAdapter = cursorAdapter
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 searchView.clearFocus()
-
-                return false
+                return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                 cursor.let {
+                     if (newText == null) return false
+                        val suggested = searchBusiness(newText)
+                        suggested.forEachIndexed { index, suggestion ->
+                            if (suggestion.contains(newText, true))
+                            cursor.addRow(arrayOf(index, suggestion))
+                    }
 
-                return false
+                     cursorAdapter.changeCursor(cursor)
+                }
+
+                return true
             }
         })
+
+        searchView.setOnSuggestionListener(object : SearchView.OnSuggestionListener{
+            override fun onSuggestionSelect(p0: Int): Boolean {
+                return false
+            }
+
+            override fun onSuggestionClick(position: Int): Boolean {
+                val cursors = searchView.suggestionsAdapter.getItem(position) as Cursor
+                val selection = cursors.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
+                searchView.setQuery(selection, false)
+
+                // TODO Do something with selection
+                return true
+            }
+
+        })
+
         return super.onCreateOptionsMenu(menu)
+    }
+
+    fun searchBusiness(text:String): List<String>{
+        val suggestions : ArrayList<String> = ArrayList()
+        businessViewModel.searchBusiness(text, latitude, longitude)!!.observe(this){
+            for (business in it.businesses){
+                suggestions.add(business?.alias ?: return@observe)
+            }
+
+            for (category in it.categories){
+                suggestions.add(category?.title ?: return@observe)
+            }
+
+            for (term in it.terms){
+                suggestions.add(term?.text ?: return@observe)
+            }
+        }
+
+        return suggestions
     }
 }
