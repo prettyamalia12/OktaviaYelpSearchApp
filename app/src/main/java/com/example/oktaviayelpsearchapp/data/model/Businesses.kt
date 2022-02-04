@@ -59,8 +59,11 @@ data class Location(
     val address2: String,
     @SerializedName("address3")
     val address3: String,
-    @SerializedName("alias")
-    val alias: String,
+    @SerializedName("address1")
+    val address1: String,
     @SerializedName("title")
-    val title: String
+    val title: String,
+    @SerializedName("display_address")
+    val display_address: List<String>
 )
+

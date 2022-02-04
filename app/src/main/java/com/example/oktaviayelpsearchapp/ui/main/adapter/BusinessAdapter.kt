@@ -1,5 +1,6 @@
 package com.example.oktaviayelpsearchapp.ui.main.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,9 +16,17 @@ class BusinessAdapter (
 ) : RecyclerView.Adapter<DataViewHolder>() {
 
     class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        @SuppressLint("SetTextI18n")
         fun bind(businesses: Businesses) {
             itemView.txtName.text = businesses.name
             itemView.txtLocation.text = businesses.location.title
+            itemView.txtBusinessType.text = businesses.categories[0].title
+            itemView.txtReviewCount.text = businesses.review_count.toString()
+
+            val displayAddress = businesses.location.display_address
+            itemView.txtLocation.text = displayAddress[0]+displayAddress[1]
+
+            itemView.ratingBar.rating = businesses.rating.toFloat()
             Glide.with(itemView.imgLogo.context)
                 .load(businesses.image_url)
                 .into(itemView.imgLogo)
