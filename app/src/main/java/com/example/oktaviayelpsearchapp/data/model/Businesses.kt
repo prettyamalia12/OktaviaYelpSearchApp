@@ -2,9 +2,14 @@ package com.example.oktaviayelpsearchapp.data.model
 
 import com.google.gson.annotations.SerializedName
 
+data class BusinessResponse(
+    @SerializedName("businesses")
+    val businesses: List<Businesses>
+)
+
 data class Businesses(
     @SerializedName("rating")
-    val rating: Int,
+    val rating: Double,
     @SerializedName("price")
     val price: String,
     @SerializedName("phone")

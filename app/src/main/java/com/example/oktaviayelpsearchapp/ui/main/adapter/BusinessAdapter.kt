@@ -7,7 +7,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.oktaviayelpsearchapp.R
 import com.example.oktaviayelpsearchapp.data.model.Businesses
-import com.example.oktaviayelpsearchapp.ui.main.adapter.BusinessAdapter.*
+import com.example.oktaviayelpsearchapp.ui.main.adapter.BusinessAdapter.DataViewHolder
+import kotlinx.android.synthetic.main.business_item.view.*
 
 class BusinessAdapter (
     private val businesses: ArrayList<Businesses>
@@ -36,7 +37,7 @@ class BusinessAdapter (
     override fun onBindViewHolder(holder: DataViewHolder, position: Int) =
         holder.bind(businesses[position])
 
-    fun addData(list: List<Businesses>) {
-        businesses.addAll(list)
+    fun addData(businessList: List<Businesses>) {
+        businesses.addAll(businessList)
     }
 }
