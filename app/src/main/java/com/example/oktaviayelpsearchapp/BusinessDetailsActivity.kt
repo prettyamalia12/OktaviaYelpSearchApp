@@ -11,9 +11,14 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.oktaviayelpsearchapp.data.model.Businesses
 import com.example.oktaviayelpsearchapp.data.model.Hours
+import com.example.oktaviayelpsearchapp.ui.main.adapter.ReviewAdapter
+import com.example.oktaviayelpsearchapp.ui.main.viewmodel.ReviewsViewModel
 import kotlinx.android.synthetic.main.activity_business_details.*
 import kotlinx.android.synthetic.main.activity_business_details.view.*
 import java.util.*
@@ -21,10 +26,15 @@ import java.util.*
 
 class BusinessDetailsActivity : AppCompatActivity() {
 
+    private lateinit var reviewsViewModel: ReviewsViewModel
+    private lateinit var adapter: ReviewAdapter
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_business_details)
+
+        setupUI()
 
         val businesses: Businesses? = intent.getSerializableExtra("business") as Businesses?
 
@@ -33,6 +43,16 @@ class BusinessDetailsActivity : AppCompatActivity() {
         }
 
         this.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun setupUI() {
+        rvReview.layoutManager = LinearLayoutManager(this)
+        adapter = ReviewAdapter(arrayListOf())
+        rvReview.addItemDecoration(
+            DividerItemDecoration(
+                rvReview.context, (rvReview.layoutManager as LinearLayoutManager).orientation)
+        )
+        rvReview.adapter = adapter
     }
 
     fun showBusinessDetails(businesses: Businesses){
@@ -72,6 +92,18 @@ class BusinessDetailsActivity : AppCompatActivity() {
         Glide.with(imgBusiness.context)
             .load(businesses.image_url)
             .into(imgBusiness.imgBusiness)
+
+        //fetch review data
+        getReviews(businesses.id)
+    }
+
+    private fun getReviews(id : String){
+        reviewsViewModel = ViewModelProvider(this).get(ReviewsViewModel::class.java)
+        reviewsViewModel.getReviews(id)!!.observe(this){
+            adapter.refreshData()
+            adapter.addData(it.reviews)
+            adapter.notifyDataSetChanged()
+        }
     }
 
     private fun setOpenHours(hours: Hours): String{
@@ -107,9 +139,8 @@ class BusinessDetailsActivity : AppCompatActivity() {
         return start == "0" && end == "0" && isOvernight
     }
 
-    private fun setHourFormat(hours: String): String{
-
-        return hours
+    private fun setHourFormat(hours: String): String {
+        return hours.substring(0, 2) + ":" + hours.substring(2, 4)
     }
 
     private fun checkTodaysDay(): Int {

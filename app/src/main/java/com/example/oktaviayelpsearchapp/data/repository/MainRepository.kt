@@ -6,6 +6,7 @@ import com.example.oktaviayelpsearchapp.data.api.ApiClient
 import com.example.oktaviayelpsearchapp.data.model.AutocompleteResponse
 import com.example.oktaviayelpsearchapp.data.model.BusinessResponse
 import com.example.oktaviayelpsearchapp.data.model.Businesses
+import com.example.oktaviayelpsearchapp.data.model.ReviewsResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -16,6 +17,30 @@ object MainRepository {
     val searchResponse = MutableLiveData<BusinessResponse>()
     val autocompleteResponse = MutableLiveData<AutocompleteResponse>()
     val businessDetailsResponse = MutableLiveData<Businesses>()
+    val reviewsResponse = MutableLiveData<ReviewsResponse>()
+
+    fun getReviewsApiCall(id:String) : MutableLiveData<ReviewsResponse> {
+        val call = ApiClient.apiInterface.getReviews(id)
+
+        call.enqueue(object : Callback<ReviewsResponse>{
+            override fun onResponse(call: Call<ReviewsResponse>, response: Response<ReviewsResponse>) {
+                Log.v("DEBUG : ", response.body().toString())
+
+                val data = response.body()
+                if (response.isSuccessful){
+                    reviewsResponse.value = data
+                }else{
+                    //TODO error handling
+                }
+            }
+
+            override fun onFailure(call: Call<ReviewsResponse>, t: Throwable) {
+                Log.v("DEBUG : ", t.message.toString())
+            }
+
+        })
+        return reviewsResponse
+    }
 
     fun searchBusinessApiCall(term:String, latitude: Double, longitude: Double):
             MutableLiveData<BusinessResponse> {
