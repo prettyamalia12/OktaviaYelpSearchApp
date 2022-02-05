@@ -14,8 +14,9 @@ import kotlinx.android.synthetic.main.business_item.view.*
 class BusinessAdapter (
     private val businesses: ArrayList<Businesses>
 ) : RecyclerView.Adapter<DataViewHolder>() {
+    var onItemClick: ((String) -> Unit)? = null
 
-    class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         @SuppressLint("SetTextI18n")
         fun bind(businesses: Businesses) {
             itemView.txtName.text = businesses.name
@@ -28,6 +29,11 @@ class BusinessAdapter (
             Glide.with(itemView.imgLogo.context)
                 .load(businesses.image_url)
                 .into(itemView.imgLogo)
+
+            //onclick show business details
+            itemView.setOnClickListener {
+                onItemClick?.invoke(businesses.id)
+            }
         }
     }
 

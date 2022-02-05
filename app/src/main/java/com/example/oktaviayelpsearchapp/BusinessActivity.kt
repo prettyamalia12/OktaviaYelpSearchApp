@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -116,12 +117,25 @@ class BusinessActivity : AppCompatActivity() {
             Toast.LENGTH_LONG).show()
     }
 
+    private fun showProgressBar(){
+        progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideProgressBar(){
+        progressBar.visibility = View.GONE
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     private fun getBusinessList(){
-        if (longitude == 0.0  || latitude == 0.0) addMessage(getString(R.string.location_unknown))
+        showProgressBar()
+        if (longitude == 0.0  || latitude == 0.0) {
+            hideProgressBar()
+            addMessage(getString(R.string.location_unknown))
+        }
         else {
             businessViewModel.getBusiness(latitude, longitude)!!.observe(this) {
                 if (it.businesses.isNotEmpty()){
+                    hideProgressBar()
                     adapter.refreshData()
                     adapter.addData(it.businesses)
                     adapter.notifyDataSetChanged()
@@ -132,10 +146,15 @@ class BusinessActivity : AppCompatActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     fun searchBusiness(text:String){
-        if (longitude == 0.0 || latitude == 0.0) addMessage(getString(R.string.location_unknown))
+        showProgressBar()
+        if (longitude == 0.0 || latitude == 0.0){
+            hideProgressBar()
+            addMessage(getString(R.string.location_unknown))
+        }
         else {
             businessViewModel.searchBusiness(text, latitude, longitude)!!.observe(this){
                 if (it.businesses.isNotEmpty()){
+                    hideProgressBar()
                     adapter.refreshData()
                     adapter.addData(it.businesses)
                     adapter.notifyDataSetChanged()
@@ -146,12 +165,15 @@ class BusinessActivity : AppCompatActivity() {
 
     private fun setupUI() {
         rvBusiness.layoutManager = LinearLayoutManager(this)
-        adapter = BusinessAdapter(arrayListOf())
+        adapter = BusinessAdapter( arrayListOf())
         rvBusiness.addItemDecoration(
             DividerItemDecoration(
                 rvBusiness.context, (rvBusiness.layoutManager as LinearLayoutManager).orientation)
         )
         rvBusiness.adapter = adapter
+        adapter.onItemClick = { id ->
+            getBusinessDetails(id)
+        }
     }
 
     private fun setUpViewModel(){

@@ -1,13 +1,12 @@
 package com.example.oktaviayelpsearchapp.data.model
 
-import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class BusinessResponse(
     @SerializedName("businesses")
     val businesses: List<Businesses>
-)
+) : Serializable
 
 data class Businesses(
     @SerializedName("rating")
@@ -43,14 +42,14 @@ data class Categories(
     val alias: String,
     @SerializedName("title")
     val title: String
-)
+) : Serializable
 
 data class Coordinates(
     @SerializedName("latitude")
     val latitude: Double,
     @SerializedName("longitude")
     val longitude: Double,
-)
+) : Serializable
 
 data class Location(
     @SerializedName("city")
@@ -67,5 +66,5 @@ data class Location(
     val title: String,
     @SerializedName("display_address")
     val display_address: List<String>
-)
+) : Serializable
 

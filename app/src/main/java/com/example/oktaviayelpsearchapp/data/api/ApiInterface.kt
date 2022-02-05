@@ -5,6 +5,7 @@ import com.example.oktaviayelpsearchapp.data.model.BusinessResponse
 import com.example.oktaviayelpsearchapp.data.model.Businesses
 import retrofit2.Call
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiInterface {
@@ -17,7 +18,7 @@ interface ApiInterface {
     @GET("autocomplete")
     fun getAutocomplete(@Query ("text") text: String, @Query ("latitude") latitude: Double, @Query ("longitude") longitude: Double) : Call<AutocompleteResponse>
 
-    @GET("businesses")
-    fun getBusinessDetails(@Query ("id") id: String) : Call<Businesses>
+    @GET("businesses/{id}")
+    fun getBusinessDetails(@Path ("id") id: String) : Call<Businesses>
 
 }
