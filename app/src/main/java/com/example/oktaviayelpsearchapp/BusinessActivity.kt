@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.location.Location
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.Menu
@@ -22,10 +23,13 @@ import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.oktaviayelpsearchapp.data.model.Businesses
+import com.example.oktaviayelpsearchapp.data.model.Coordinates
 import com.example.oktaviayelpsearchapp.ui.main.adapter.BusinessAdapter
 import com.example.oktaviayelpsearchapp.ui.main.viewmodel.BusinessViewModel
 import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_business.*
+import java.util.Collections.sort
 
 
 class BusinessActivity : AppCompatActivity() {
@@ -37,6 +41,8 @@ class BusinessActivity : AppCompatActivity() {
     private var latitude : Double = 0.0
     private val LOCATION_PERMISSION_REQ_CODE = 100
     private var searchResult : HashMap<String, String> = HashMap()
+    private lateinit var businessList : List<Businesses>
+    private lateinit var userCoordinates: Coordinates
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +53,53 @@ class BusinessActivity : AppCompatActivity() {
         setupUI()
         setUpViewModel()
         getUserLocation()
+
+        txtSortDistance.setOnClickListener{
+            txtSortDistance.isEnabled = true
+            sortDistance() }
+        txtSortRating.setOnClickListener{
+            txtSortRating.isEnabled = true
+            sortRating()}
+    }
+
+    private fun sortDistance() {
+        if (businessList.isNotEmpty()){
+
+            val distanceList : ArrayList<Float> = ArrayList()
+            for (i in businessList){
+                distanceList.add(countDistance(i.coordinates, userCoordinates))
+            }
+            sort(distanceList) { l1, l2 -> if (l1 > l2) {
+                    -1
+                } else {
+                    1
+                }
+            }
+            adapter.refreshData()
+            adapter.addData(businessList)
+            adapter.notifyDataSetChanged()
+            txtSortDistance.isEnabled = false
+        }
+    }
+
+    private fun countDistance(businessCoordinates: Coordinates, userCoordinates: Coordinates): Float{
+        val results = FloatArray(1)
+        Location.distanceBetween(
+            businessCoordinates.latitude, businessCoordinates.longitude,
+            userCoordinates.latitude, userCoordinates.longitude, results
+        )
+        return results[0]
+    }
+
+    private fun sortRating() {
+        if (businessList.isNotEmpty()){
+
+            businessList.sortedBy{ it.rating}
+            adapter.refreshData()
+            adapter.addData(businessList)
+            adapter.notifyDataSetChanged()
+            txtSortRating.isEnabled = false
+        }
     }
 
     private fun getUserLocation() {
@@ -67,6 +120,8 @@ class BusinessActivity : AppCompatActivity() {
                 if (location != null){
                     latitude = location.latitude
                     longitude = location.longitude
+
+                    userCoordinates = Coordinates(latitude, longitude)
                     getBusinessList()
                 }else{
                     val mLocationRequest: LocationRequest = LocationRequest.create()
@@ -82,6 +137,7 @@ class BusinessActivity : AppCompatActivity() {
                                 if (l != null) {
                                     longitude = l.longitude
                                     latitude = l.latitude
+                                    userCoordinates = Coordinates(latitude, longitude)
                                     getBusinessList()
                                 }
                             }
@@ -135,7 +191,11 @@ class BusinessActivity : AppCompatActivity() {
         else {
             businessViewModel.getBusiness(latitude, longitude)!!.observe(this) {
                 if (it.businesses.isNotEmpty()){
+                    businessList = ArrayList()
+                    businessList = it.businesses
+
                     hideProgressBar()
+
                     adapter.refreshData()
                     adapter.addData(it.businesses)
                     adapter.notifyDataSetChanged()
@@ -154,6 +214,9 @@ class BusinessActivity : AppCompatActivity() {
         else {
             businessViewModel.searchBusiness(text, latitude, longitude)!!.observe(this){
                 if (it.businesses.isNotEmpty()){
+                    businessList = ArrayList()
+                    businessList = it.businesses
+
                     hideProgressBar()
                     adapter.refreshData()
                     adapter.addData(it.businesses)

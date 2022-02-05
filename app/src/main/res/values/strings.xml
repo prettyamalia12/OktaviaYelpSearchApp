@@ -11,4 +11,6 @@
     <string name="reviews">%s reviews</string>
     <string name="openHours">Open %1s - %2s</string>
     <string name="open24Hours">Open 24 hours</string>
+    <string name="highest_rating">Highest Rating</string>
+    <string name="nearest">Nearest</string>
 </resources>

@@ -68,9 +68,9 @@ data class Categories(
 
 data class Coordinates(
     @SerializedName("latitude")
-    val latitude: Double,
+    var latitude: Double,
     @SerializedName("longitude")
-    val longitude: Double,
+    var longitude: Double,
 ) : Serializable
 
 data class Location(
