@@ -5,6 +5,7 @@
       <map>
         <entry key="app/src/main/res/drawable/ic_location.xml" value="0.25416666666666665" />
         <entry key="app/src/main/res/layout/activity_business.xml" value="0.27339449541284405" />
+        <entry key="app/src/main/res/layout/activity_business_details.xml" value="0.45" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14402173913043478" />
         <entry key="app/src/main/res/layout/business_item.xml" value="0.37995337995337997" />
         <entry key="app/src/main/res/layout/layout_search.xml" value="0.3663949275362319" />

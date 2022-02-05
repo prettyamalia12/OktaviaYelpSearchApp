@@ -3,4 +3,7 @@
     <string name="app_title">Yelp Business Database</string>
     <string name="search_hint">Search the local business</string>
     <string name="search">Search</string>
+    <string name="business_details">Business Details</string>
+    <string name="location_unknown">Location not found</string>
+    <string name="grant_access">You need to grant permission to access location</string>
 </resources>

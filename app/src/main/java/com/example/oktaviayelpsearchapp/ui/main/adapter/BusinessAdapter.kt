@@ -22,9 +22,7 @@ class BusinessAdapter (
             itemView.txtLocation.text = businesses.location.title
             itemView.txtBusinessType.text = businesses.categories[0].title
             itemView.txtReviewCount.text = businesses.review_count.toString()
-
-            val displayAddress = businesses.location.display_address
-            itemView.txtLocation.text = displayAddress[0]+displayAddress[1]
+            itemView.txtLocation.text = businesses.location.display_address[0]
 
             itemView.ratingBar.rating = businesses.rating.toFloat()
             Glide.with(itemView.imgLogo.context)
@@ -36,8 +34,7 @@ class BusinessAdapter (
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         DataViewHolder(
             LayoutInflater.from(parent.context).inflate(
-                R.layout.business_item, parent,
-                false
+                R.layout.business_item, parent, false
             )
         )
 
@@ -48,5 +45,10 @@ class BusinessAdapter (
 
     fun addData(businessList: List<Businesses>) {
         businesses.addAll(businessList)
+    }
+
+    fun refreshData(){
+        businesses.removeAll(businesses)
+        notifyDataSetChanged()
     }
 }

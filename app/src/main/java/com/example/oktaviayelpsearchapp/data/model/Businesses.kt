@@ -1,6 +1,8 @@
 package com.example.oktaviayelpsearchapp.data.model
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 data class BusinessResponse(
     @SerializedName("businesses")
@@ -34,7 +36,7 @@ data class Businesses(
     val image_url: String,
     @SerializedName("location")
     val location: Location,
-)
+) : Serializable
 
 data class Categories(
     @SerializedName("alias")

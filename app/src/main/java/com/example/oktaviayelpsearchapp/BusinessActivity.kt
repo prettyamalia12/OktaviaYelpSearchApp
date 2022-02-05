@@ -3,6 +3,7 @@ package com.example.oktaviayelpsearchapp
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.SearchManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.MatrixCursor
@@ -22,19 +23,19 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.oktaviayelpsearchapp.ui.main.adapter.BusinessAdapter
 import com.example.oktaviayelpsearchapp.ui.main.viewmodel.BusinessViewModel
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_business.*
+
 
 class BusinessActivity : AppCompatActivity() {
 
     private lateinit var businessViewModel: BusinessViewModel
     private lateinit var adapter: BusinessAdapter
     private var fusedLocationClient: FusedLocationProviderClient? = null
-    private var longitude = 0.0
-    private var latitude = 0.0
+    private var longitude : Double = 0.0
+    private var latitude : Double = 0.0
     private val LOCATION_PERMISSION_REQ_CODE = 100
-    private var suggestionsInProgress = false
+    private var searchResult : HashMap<String, String> = HashMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +63,31 @@ class BusinessActivity : AppCompatActivity() {
         fusedLocationClient?.lastLocation
             ?.addOnSuccessListener { location ->
                 // getting the last known or current location
-                latitude = location.latitude
-                longitude = location.longitude
-                getBusinessList()
+                if (location != null){
+                    latitude = location.latitude
+                    longitude = location.longitude
+                    getBusinessList()
+                }else{
+                    val mLocationRequest: LocationRequest = LocationRequest.create()
+                    mLocationRequest.interval = 60000
+                    mLocationRequest.fastestInterval = 5000
+                    mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                    val mLocationCallback: LocationCallback = object : LocationCallback() {
+                        override fun onLocationResult(locationResult: LocationResult) {
+                            if (locationResult.equals(null)) {
+                                return
+                            }
+                            for (l in locationResult.locations) {
+                                if (l != null) {
+                                    longitude = l.longitude
+                                    latitude = l.latitude
+                                    getBusinessList()
+                                }
+                            }
+                        }
+                    }
+                    fusedLocationClient?.requestLocationUpdates(mLocationRequest, mLocationCallback, mainLooper)
+                }
             }
             ?.addOnFailureListener {
                 Toast.makeText(this, "Failed on getting current location",
@@ -82,20 +105,42 @@ class BusinessActivity : AppCompatActivity() {
                     // permission granted
                 } else {
                     // permission denied
-                    Toast.makeText(this, "You need to grant permission to access location",
-                        Toast.LENGTH_SHORT).show()
+                    addMessage(getString(R.string.grant_access))
+                }
+            }
+        }
+    }
+
+    private fun addMessage(text: String){
+        Toast.makeText(this, text,
+            Toast.LENGTH_LONG).show()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun getBusinessList(){
+        if (longitude == 0.0  || latitude == 0.0) addMessage(getString(R.string.location_unknown))
+        else {
+            businessViewModel.getBusiness(latitude, longitude)!!.observe(this) {
+                if (it.businesses.isNotEmpty()){
+                    adapter.refreshData()
+                    adapter.addData(it.businesses)
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun getBusinessList(){
-        if (longitude == 0.0 || latitude == 0.0) return
-
-        businessViewModel.getBusiness(latitude, longitude)!!.observe(this) {
-            adapter.addData(it.businesses)
-            adapter.notifyDataSetChanged()
+    fun searchBusiness(text:String){
+        if (longitude == 0.0 || latitude == 0.0) addMessage(getString(R.string.location_unknown))
+        else {
+            businessViewModel.searchBusiness(text, latitude, longitude)!!.observe(this){
+                if (it.businesses.isNotEmpty()){
+                    adapter.refreshData()
+                    adapter.addData(it.businesses)
+                    adapter.notifyDataSetChanged()
+                }
+            }
         }
     }
 
@@ -113,7 +158,6 @@ class BusinessActivity : AppCompatActivity() {
         businessViewModel = ViewModelProvider(this).get(BusinessViewModel::class.java)
     }
 
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.toolbar, menu)
         val searchViewItem: MenuItem = menu.findItem(R.id.app_bar_search)
@@ -128,25 +172,25 @@ class BusinessActivity : AppCompatActivity() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 searchView.clearFocus()
+                searchBusiness(query?:"")
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-
                 if (newText?.isEmpty() == true) {
                     searchSrcTextView.threshold = 1
-                }
-
-                val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
-                // get suggestions
-                newText.let {
-                    newText?.let { searchBusiness(it) }?.forEachIndexed { index, suggestion ->
-                        if (suggestion.contains(newText, true)) {
-                            cursor.addRow(arrayOf(index, suggestion))
+                }else{
+                    val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
+                    // get suggestions
+                    newText.let {
+                        newText?.let { autocompleteBusiness(it) }?.forEachIndexed { index, suggestion ->
+                            if (suggestion.contains(newText, true)) {
+                                cursor.addRow(arrayOf(index, suggestion))
+                            }
                         }
                     }
+                    cursorAdapter.changeCursor(cursor)
                 }
-                cursorAdapter.changeCursor(cursor)
 
                 return true
             }
@@ -162,32 +206,53 @@ class BusinessActivity : AppCompatActivity() {
                 val cursors = searchView.suggestionsAdapter.getItem(position) as Cursor
                 val selection = cursors.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
                 searchView.setQuery(selection, false)
-
-                // TODO Do something with selection
+                //if it has an id, get the business details
+                if (searchResult.containsKey("id")){
+                    getBusinessDetails(searchResult["id"]!![position].toString())
+                }
+                //else do the search by keyword
+                else{
+                    searchBusiness(searchResult["alias"]!![position].toString())
+                }
                 return true
             }
-
         })
 
         return super.onCreateOptionsMenu(menu)
     }
 
-    fun searchBusiness(text:String): List<String>{
-        val suggestions : ArrayList<String> = ArrayList()
-        businessViewModel.searchBusiness(text, latitude, longitude)!!.observe(this){
-            for (business in it.businesses){
-                suggestions.add(business?.alias ?: return@observe)
+    fun getBusinessDetails(id : String){
+        businessViewModel.getBusinessDetails(id)!!.observe(this){
+            val intent = Intent(this, BusinessDetailsActivity::class.java).apply {
+                putExtra("business", it)
             }
+            startActivity(intent)
+        }
+    }
 
-            for (category in it.categories){
-                suggestions.add(category?.title ?: return@observe)
+    fun autocompleteBusiness(text:String): ArrayList<String> {
+        val search : ArrayList<String> = ArrayList()
+        businessViewModel.autocompleteBusiness(text, latitude, longitude)!!.observe(this){
+            for (i in it.businesses){
+                if (i != null) {
+                    searchResult["business_id"] = i.id
+                    search.addAll(listOf(i.alias))
+                }
             }
-
-            for (term in it.terms){
-                suggestions.add(term?.text ?: return@observe)
+            for (i in it.categories){
+                if (i != null) {
+                    searchResult["alias"] = i.title
+                    search.addAll(listOf(i.title))
+                }
+            }
+            for (i in it.terms){
+                if (i != null) {
+                    searchResult["alias"] = i.text
+                    search.addAll(listOf(i.text))
+                }
             }
         }
 
-        return suggestions
+        return search
     }
 }
