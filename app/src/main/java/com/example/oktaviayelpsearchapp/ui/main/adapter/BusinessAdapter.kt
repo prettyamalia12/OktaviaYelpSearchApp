@@ -22,8 +22,19 @@ class BusinessAdapter (
             itemView.txtName.text = businesses.name
             itemView.txtLocation.text = businesses.location.title
             itemView.txtBusinessType.text = businesses.categories[0].title
-            itemView.txtReviewCount.text = businesses.review_count.toString()
-            itemView.txtLocation.text = businesses.location.display_address[0]
+            itemView.txtReviewCount.text = itemView.context.getString(R.string.reviews, businesses.review_count.toString())
+            itemView.txtLocation.text = businesses.location.display_address.joinToString()
+
+            val open = when {
+                businesses.is_closed -> {
+                    itemView.context.getString(R.string.close)
+                }
+                else -> {
+                    itemView.context.getString(R.string.open)
+                }
+            }
+
+            itemView.txtOpen.text = open
 
             itemView.ratingBar.rating = businesses.rating.toFloat()
             Glide.with(itemView.imgLogo.context)

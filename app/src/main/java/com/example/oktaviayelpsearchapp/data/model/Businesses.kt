@@ -35,6 +35,28 @@ data class Businesses(
     val image_url: String,
     @SerializedName("location")
     val location: Location,
+    @SerializedName("hours")
+    val hours: List<Hours>,
+) : Serializable
+
+data class Hours(
+    @SerializedName("open")
+    val open: List<Open>,
+    @SerializedName("hours_type")
+    val hours_type: String,
+    @SerializedName("is_open_now")
+    val is_open_now: Boolean,
+) : Serializable
+
+data class Open(
+    @SerializedName("is_overnight")
+    val is_overnight: Boolean,
+    @SerializedName("start")
+    val start: Int,
+    @SerializedName("end")
+    val end: Int,
+    @SerializedName("day")
+    val day: Int,
 ) : Serializable
 
 data class Categories(

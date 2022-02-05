@@ -182,6 +182,7 @@ class BusinessActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.toolbar, menu)
+
         val searchViewItem: MenuItem = menu.findItem(R.id.app_bar_search)
         val searchView: SearchView = searchViewItem.actionView as SearchView
 
@@ -254,23 +255,28 @@ class BusinessActivity : AppCompatActivity() {
 
     fun autocompleteBusiness(text:String): ArrayList<String> {
         val search : ArrayList<String> = ArrayList()
-        businessViewModel.autocompleteBusiness(text, latitude, longitude)!!.observe(this){
-            for (i in it.businesses){
-                if (i != null) {
-                    searchResult["business_id"] = i.id
-                    search.addAll(listOf(i.alias))
+        if (longitude == 0.0 || latitude == 0.0) {
+            hideProgressBar()
+            addMessage(getString(R.string.location_unknown))
+        } else{
+            businessViewModel.autocompleteBusiness(text, latitude, longitude)!!.observe(this){
+                for (i in it.businesses){
+                    if (i != null) {
+                        searchResult["business_id"] = i.id
+                        search.addAll(listOf(i.alias))
+                    }
                 }
-            }
-            for (i in it.categories){
-                if (i != null) {
-                    searchResult["alias"] = i.title
-                    search.addAll(listOf(i.title))
+                for (i in it.categories){
+                    if (i != null) {
+                        searchResult["alias"] = i.title
+                        search.addAll(listOf(i.title))
+                    }
                 }
-            }
-            for (i in it.terms){
-                if (i != null) {
-                    searchResult["alias"] = i.text
-                    search.addAll(listOf(i.text))
+                for (i in it.terms){
+                    if (i != null) {
+                        searchResult["alias"] = i.text
+                        search.addAll(listOf(i.text))
+                    }
                 }
             }
         }
