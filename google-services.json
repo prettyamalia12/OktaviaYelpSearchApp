@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "780952111553",
+    "project_id": "oktaviayelpsearchapp",
+    "storage_bucket": "oktaviayelpsearchapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:780952111553:android:bedce6dc1e2215faefc740",
+        "android_client_info": {
+          "package_name": "com.example.oktaviayelpsearchapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "780952111553-5va7fmiqs229imm4us4htm90kesp0r1o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAys1_KlMYrxPeTmldRydMzxMyRipA-jZw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "780952111553-5va7fmiqs229imm4us4htm90kesp0r1o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
